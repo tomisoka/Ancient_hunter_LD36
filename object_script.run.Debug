@@ -1,0 +1,17 @@
+INPUT(
+./debug/main.o
+./debug/common.o
+./debug/window.o
+./debug/game.o
+./debug/render.o
+./debug/images.o
+./debug/level.o
+./debug/menu.o
+./debug/audio.o
+./debug/run_plugin_import.o
+./debug/moc_window.o
+./debug/moc_game.o
+./debug/moc_render.o
+./debug/moc_level.o
+./debug/moc_menu.o
+);
