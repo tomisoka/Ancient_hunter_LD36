@@ -21,12 +21,12 @@ Level::~Level(){
 	for(i=0;i<imgSize;++i){
 		delete images[i];
 	}
-	delete images;
+	free(images);
 	for(i=0;i<imgMovs.size();++i){
 		delete imgMovs[i];
 	}
-	delete mapText;
-	delete mapProp;
+	free(mapText);
+	free(mapProp);
 }
 
 
@@ -172,9 +172,235 @@ bool Level::setup(const char *file){
 	return 0;
 }
 
+bool Level::setup(int w, int h){
+	uint32_t i;
+
+	this->w = w;
+	this->h = h;
+
+	tileW = 32;
+	tileH = 32;
+
+
+
+	vector<imageData *> imgData;
+
+
+
+
+
+	imageData *imgD;
+	QImage *img;
+	imgMov *mov;
+
+	imgD = new imageData();
+	img = loadImage("./textures/font,png");
+
+	imgD->img = img;
+	imgD->width = 512;
+	imgD->height = 512;
+
+	imgD->start = 1;
+	imgD->length = 256;
+	imgData.push_back(imgD);
+	imgSize = imgD->start+imgD->length;
+
+
+	imgD = new imageData();
+	img = loadImage("./textures/textures.png");
+
+	imgD->img = img;
+	imgD->width = 512;
+	imgD->height = 512;
+
+	imgD->start = 257;
+	imgD->length = 256;
+	imgData.push_back(imgD);
+	imgSize = imgD->start+imgD->length;
+
+
+	imgD = new imageData();
+	img = loadImage("./textures/water.png");
+
+	imgD->img = img;
+	imgD->width = 256;
+	imgD->height = 32;
+
+	imgD->start = 513;
+	imgD->length = 8;
+	imgData.push_back(imgD);
+	imgSize = imgD->start+imgD->length;
+
+	mov = new imgMov(imgD->start, imgD->start + imgD->length, 8);
+	imgMovs.push_back(mov);
+
+
+
+
+	images = (QImage **)malloc(sizeof(QImage *) * imgSize);
+	mapText = (int *)malloc(sizeof(int) * w * h);
+	mapProp = (int *)malloc(sizeof(int) * w * h);
+
+	int actImgID = 0;
+	int actImgPart = 0;
+	int widImg;
+	images[0] = new QImage();
+	for(i=1;i<imgSize;++i){
+		widImg = imgData[actImgID]->width/tileW;
+		QRect rect((actImgPart%widImg)*tileW, (actImgPart/widImg)*tileH, tileW, tileH);
+
+
+		images[i] = new QImage(imgData[actImgID]->img->copy(rect));
+
+		actImgPart++;
+		if(actImgPart == imgData[actImgID]->length){
+			actImgPart = 0;
+			actImgID++;
+		}
+	}
+
+	int x,y;
+	for(x=0;x<w;++x){
+		for(y=0;y<h;++y){
+			mapText[x+y*w] = 257;
+			mapProp[x+y*w] = 0;
+		}
+	}
+
+	generateTerrain();
+	
+
+
+
+
+
+	for(i=0;i<imgData.size();++i){
+		delete imgData[i];
+	}
+
+	return 0;
+}
+
+void Level::generateTerrain(){
+	int temp;
+	uint32_t i;
+	QPoint startPs;
+
+	temp = getRandInt(1, h-1);
+	startPs = QPoint(0,temp);
+	mapProp[(temp+1)*w] = 1;
+	mapText[(temp+1)*w] = 259;
+	mapProp[temp*w] = 3;
+	mapProp[(temp-1)*w] = 1;
+	mapText[(temp-1)*w] = 259;
+
+
+	temp = getRandInt(1, h-1);
+	mapProp[(temp+1)*w+w-1] = 1;
+	mapText[(temp+1)*w+w-1] = 259;
+	mapProp[temp*w+w-1] = 4;
+	mapProp[(temp-1)*w+w-1] = 1;
+	mapText[(temp-1)*w+w-1] = 259;
+
+
+	int x,y;
+	for(i=0;i<2 * w*h /1024;++i){
+		x = getRandInt(0,w);
+		y = getRandInt(0,h);
+
+		generateWater(QPoint(x,y), 3);
+	}
+
+	for(i=0;i<32 * w*h /1024;++i){
+		x = getRandInt(0,w);
+		y = getRandInt(0,h);
+
+		generateRock(QPoint(x,y), getRandDouble()*1.3);
+	}
+
+	for(i=0;i<120 * w*h /1024;++i){
+		x = getRandInt(0,w);
+		y = getRandInt(0,h);
+
+		generateBush(QPoint(x,y), getRandDouble()*0.6f);
+	}
+
+	mapTemp = (int *)malloc(sizeof(int)*w*h);
+
+	for(i=0;i<w*h;++i)mapTemp[i]=0;
+
+	checkPath(startPs);
+
+	for(i=0;i<w*h;++i){
+		if(mapTemp[i]==0){
+			if(mapProp[i]!=1){
+				mapProp[i] = 1;
+				mapText[i] = 259;
+			}
+		}
+	}
+
+	free(mapTemp);
+}
+
+void Level::checkPath(QPoint pos){
+	int x = pos.x();
+	int y = pos.y();
+
+	if(mapTemp[x + y * w]!=0)return;
+	if(mapProp[x + y * w]==1)return;
+	mapTemp[x+y*w] = 1;
+
+	if(x)checkPath(pos+QPoint(-1,0));
+	if(y)checkPath(pos+QPoint(0,-1));
+	if(x!=w-1)checkPath(pos+QPoint(1,0));
+	if(y!=h-1)checkPath(pos+QPoint(0,1));
+}
+
+void Level::generateRock(QPoint pos, float prob){
+	int x = pos.x();
+	int y = pos.y();
+	if(mapProp[x + y * w]!=0)return;
+
+	if(x!=1 && y!=1 && x!=w-2 && y!=h-2){
+		mapProp[x+y*w] = 1;
+		mapText[x+y*w] = 259;
+	}
+	if(getRandDouble() < prob && x != 0 && (y!=1 || x==1) && (y!=h-2 || x==1))generateRock(pos+QPoint(-1,0), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && y != 0 && (x!=1 || y==1) && (x!=w-2 || y==1))generateRock(pos+QPoint(0,-1), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && x != w-1 && (y!=h-2 || x==w-2) && (y==1 || x==w-2))generateRock(pos+QPoint(1,0), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && y != h-1 && (x!=w-2 || y==h-2) && (x==1 || y==h-2))generateRock(pos+QPoint(0,1), prob*(1-fabs(getRandDouble2())));
+}
+
+void Level::generateBush(QPoint pos, float prob){
+	int x = pos.x();
+	int y = pos.y();
+	if(mapProp[x + y * w]!=0)return;
+
+	mapProp[x+y*w] = 2;
+	mapText[x+y*w] = 258;
+	if(getRandDouble() < prob && x != 0)generateBush(pos+QPoint(-1,0), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && y != 0)generateBush(pos+QPoint(0,-1), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && x != w-1)generateBush(pos+QPoint(1,0), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && y != h-1)generateBush(pos+QPoint(0,1), prob*(1-fabs(getRandDouble2())));
+}
+
+void Level::generateWater(QPoint pos, float prob){
+	int x = pos.x();
+	int y = pos.y();
+	if(mapProp[x + y * w]!=0)return;
+
+	mapProp[x+y*w] = 2;
+	mapText[x+y*w] = 513;
+	if(getRandDouble() < prob && x != 0)generateWater(pos+QPoint(-1,0), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && y != 0)generateWater(pos+QPoint(0,-1), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && x != w-1)generateWater(pos+QPoint(1,0), prob*(1-fabs(getRandDouble2())));
+	if(getRandDouble() < prob && y != h-1)generateWater(pos+QPoint(0,1), prob*(1-fabs(getRandDouble2())));
+}
+
 void Level::tick(){
 	uint32_t i, j;
-	for(i=0;i<imgMovs.size();++i){
+for(i=0;i<imgMovs.size();++i){
 		imgMovs[i]->tick++;
 		if(imgMovs[i]->tick >= imgMovs[i]->ticks){
 			imgMovs[i]->tick -= imgMovs[i]->ticks;

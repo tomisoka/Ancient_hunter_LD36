@@ -5,7 +5,8 @@
 #include "images.h"
 #include "menu.h"
 #include "audio.h"
-
+#include "unlock.h"
+#include "trader.h"
 
 QFont font;
 QFontMetrics fontMet(font);
@@ -147,12 +148,15 @@ void setup(int argc, char **argv){
 	setup_window();
 	setup_render();
 	setup_audio();
+	setup_unlock();
+	setup_trader();
 	setup_game();
 }
 
 void cleanup(){
 	cleanup_game();
-	setup_audio();
+	cleanup_unlock();
+	cleanup_audio();
 	cleanup_render();
 	cleanup_window();
 	cleanup_images();

@@ -11,12 +11,15 @@ public:
 	void render(QPainter *painter);
 
 	void setActive(bool active){this->active = active;}
+	void setEndGameMessage(QString message){endGameMessage = message;}
 
 public slots:
 	void keyPress(QKeyEvent *ev);
 	void keyRelease(QKeyEvent *ev);
 
 protected:
+	QString endGameMessage;
+
 	bool inGameMenu;
 	bool levelChoose;
 	bool info;

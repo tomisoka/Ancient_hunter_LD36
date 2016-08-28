@@ -16,7 +16,7 @@ using namespace pugi;
 #include <QtMultimedia>
 #include <QtCore>
 
-#include <QtAV>
+//#include <QtAV>
 
 #define APPNAME "LD36 - APP"
 

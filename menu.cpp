@@ -13,23 +13,30 @@ int offArr = 8;
 
 
 #define OptionsOptionLen 3
-QString OptionsOption[OptionsOptionLen] = {"Sounds:", "Music:", "Exit"};
+QString OptionsOption[OptionsOptionLen] = {"Sounds:", "Music: (not added)", "Exit"};
 int OptionsOptionMaxLen = 0;
 
 
 
 #define inGameOptionLen 3
-QString inGameOption[inGameOptionLen] = {"Resume", "Restart", "Exit"};
+QString inGameOption[inGameOptionLen] = {"Continue", "Restart", "Exit"};
 int inGameOptionMaxLen = 0;
 
 
 
 QString infoMenu =
-"This game is about ...\n\
-Controls:\n\
+"Hunt animals, collect food and upgrade!\n\
 \n\
-Game was created in C++ with libraries {Qt5, pugixml} with help of these tools: {Gimp, Tiled, Sfxr, Abundant-music} + other smaller tools such as {Vim, audio-convert, ...}\n\
-Game created for LD36 by tomisoka - youtube channel TomisokaCZ (/channel/UC2QxBABxVf3Bn-vpP3_a_lA) - timelapse of creating this game will be posted here + my other proJects\n\
+Controls:\n\
+WASD/arrow - navigation in menu, movement in game.\n\
+F - trade with trader.\n\
+Space - attack.\n\
+Ctrl - sprint.\n\
+QE - change weapon (if unlocked).\n\
+\n\
+Entrance is on the left, Exit is on the right between two rocks.\n\
+\n\
+This game was created for Ludum Dare 36 by Tomisoka in C++ with libraries {Qt5, pugixml} and with help of these tools: {Gimp, Tiled, Sfxr} + other smaller tools such as Vim.\n\
 \n\
 > Exit <";
 
@@ -49,6 +56,7 @@ Menu::Menu():inGameMenu(0), chosen(0), info(0), inOptions(0), levelChoose(0), yL
 	HArr = fontMet.height();
 
 
+	max = 0;
 	for(i=0;i<OptionsOptionLen;++i){
 		temp = fontMet.width(OptionsOption[i]);
 		if(temp > max)max = temp;
@@ -56,6 +64,7 @@ Menu::Menu():inGameMenu(0), chosen(0), info(0), inOptions(0), levelChoose(0), yL
 	OptionsOptionMaxLen = max+16;
 
 
+	max = 0;
 	for(i=0;i<inGameOptionLen;++i){
 		temp = fontMet.width(inGameOption[i]);
 		if(temp > max)max = temp;
@@ -75,21 +84,27 @@ void Menu::keyPress(QKeyEvent *ev){
 		options = inGameOptionLen;
 		if(key == Qt::Key_W || key == Qt::Key_Up){
 			if(chosen)chosen--;
+			if(chosen == 1 && !game->isGameEnded() && !game->isDeadPlayer())chosen--;
 		}else if(key == Qt::Key_S || key == Qt::Key_Down){
 			if(chosen<options-1)chosen++;
+			if(chosen == 1 && !game->isGameEnded() && game->isDeadPlayer())chosen++;
 		}else if(key == Qt::Key_Escape){
 			game->unpause();
 			chosen = 0;
 		}else if(key == Qt::Key_Enter || key == Qt::Key_Return){
-			game->unpause();
-			if(chosen == 0){
+			if(chosen == 0 && !game->isDeadPlayer()){
+				game->unpause();
+				if(game->isGameEnded())game->restartLevel();
 			}else if(chosen == 1){
+				game->unpause();
 				game->restartLevel();
+				chosen = 0;
 			}else if(chosen == 2){
+				game->unpause();
 				game->endLevel();
 				inGameMenu = 0;
+				chosen = 0;
 			}
-			chosen = 0;
 		}
 
 	}else{
@@ -137,6 +152,7 @@ void Menu::keyPress(QKeyEvent *ev){
 				if(chosen<options-1)chosen++;
 			}else if(key == Qt::Key_Enter || key == Qt::Key_Return){
 				if(chosen == 2){
+					updateVolume();
 					inOptions = 0;
 					chosen = 0;
 				}
@@ -169,6 +185,19 @@ void Menu::keyPress(QKeyEvent *ev){
 				if(chosen<options-1)chosen++;
 			}else if(key == Qt::Key_Enter || key == Qt::Key_Return){
 				if(chosen == 0){
+					game->loadLevel("");
+					inGameMenu = 1;
+				}else if(chosen == 1){
+					inOptions = 1;
+					chosen = 0;
+				}else if(chosen == 2){
+					info = 1;
+					chosen = 0;
+				}else if(chosen == 3){
+					window->close();
+				}
+			}else if(key == Qt::Key_L){
+				if(chosen==0){
 					levelChoose = 1;
 					yLevelOffset = 0;
 					levelNames.clear();
@@ -183,18 +212,8 @@ void Menu::keyPress(QKeyEvent *ev){
 						QString name = files[i].fileName();
 						levelNames.push_back(name.mid(0, name.size() - suffix.size()-1));
 					}
-				}else if(chosen == 1){
-					inOptions = 1;
-				}else if(chosen == 2){
-					info = 1;
-				}else if(chosen == 3){
-					window->close();
 				}
-				chosen = 0;
 			}
-
-
-
 		}
 	}
 }
@@ -224,8 +243,10 @@ void Menu::render(QPainter *painter){
 		options = inGameOptionLen;
 		yOffset = (game->getH()-options*yTextDiff)/2;
 
+		if(game->isGameEnded())painter->drawText(QRect(0, 0, game->getW(), 48), Qt::AlignHCenter, endGameMessage);
+
 		for(i=0;i<options;++i){
-			painter->drawText(0,yOffset+i*yTextDiff, game->getW(), FONT_SIZE*2, Qt::AlignHCenter, inGameOption[i]);
+			if(i!=1 || !game->isGameEnded() || game->isDeadPlayer())painter->drawText(0,yOffset+i*yTextDiff, game->getW(), FONT_SIZE*2, Qt::AlignHCenter, inGameOption[i]);
 		}
 
 		painter->drawText((game->getW()/2 - inGameOptionMaxLen)  - offArr - WArr*2, yOffset+chosen*yTextDiff, WArr*2, HArr*2, Qt::AlignHCenter, ">");
@@ -275,6 +296,13 @@ void Menu::render(QPainter *painter){
 		}else{
 			options = menuOptionLen;
 			yOffset = (game->getH()-options*yTextDiff)/2;
+
+			font.setPointSize(FONT_SIZE*3/2);
+			painter->setFont(font);
+			painter->drawText(0,yOffset-3*yTextDiff, game->getW(), FONT_SIZE*4, Qt::AlignHCenter, "Ancient Hunter");
+			font.setPointSize(FONT_SIZE);
+			painter->setFont(font);
+
 
 			for(i=0;i<options;++i){
 				painter->drawText(0,yOffset+i*yTextDiff, game->getW(), FONT_SIZE*2, Qt::AlignHCenter, menuOption[i]);
