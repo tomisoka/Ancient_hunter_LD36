@@ -36,7 +36,7 @@ Enter - choose.\n\
 \n\
 Entrance is on the left, Exit is on the right between two rocks.\n\
 \n\
-This game was created for Ludum Dare 36 by Tomisoka in C++ with libraries {Qt5, pugixml} and with help of these tools: {Gimp, Tiled, Sfxr} + other smaller tools such as Vim.\n\
+This game was created for Ludum Dare 36 by Tomisoka\n\
 \n\
 > Exit <";
 
