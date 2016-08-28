@@ -1,9 +1,8 @@
 #include "menu.h"
 #include "game.h"
-#include "audio.h"
 
-#define menuOptionLen 4
-QString menuOption[menuOptionLen] = {"Play!", "Options", "Info", "Exit"};
+#define menuOptionLen 3 
+QString menuOption[menuOptionLen] = {"Play!"/*, "Options"*/, "Info", "Exit"};
 int menuOptionMaxLen = 0;
 
 int WArr;
@@ -12,9 +11,9 @@ int offArr = 8;
 
 
 
-#define OptionsOptionLen 3
-QString OptionsOption[OptionsOptionLen] = {"Sounds:", "Music: (not added)", "Exit"};
-int OptionsOptionMaxLen = 0;
+//#define OptionsOptionLen 3
+//QString OptionsOption[OptionsOptionLen] = {"Sounds:", "Music: (not added)", "Exit"};
+//int OptionsOptionMaxLen = 0;
 
 
 
@@ -28,11 +27,12 @@ QString infoMenu =
 "Hunt animals, collect food and upgrade!\n\
 \n\
 Controls:\n\
-WASD/arrow - navigation in menu, movement in game.\n\
+WASD/arrows - navigation in menu, movement in game.\n\
 F - trade with trader.\n\
 Space - attack.\n\
 Ctrl - sprint.\n\
 QE - change weapon (if unlocked).\n\
+Enter - choose.\n\
 \n\
 Entrance is on the left, Exit is on the right between two rocks.\n\
 \n\
@@ -56,12 +56,12 @@ Menu::Menu():inGameMenu(0), chosen(0), info(0), inOptions(0), levelChoose(0), yL
 	HArr = fontMet.height();
 
 
-	max = 0;
+	/*max = 0;
 	for(i=0;i<OptionsOptionLen;++i){
 		temp = fontMet.width(OptionsOption[i]);
 		if(temp > max)max = temp;
 	}
-	OptionsOptionMaxLen = max+16;
+	OptionsOptionMaxLen = max+16;*/
 
 
 	max = 0;
@@ -134,7 +134,7 @@ void Menu::keyPress(QKeyEvent *ev){
 
 
 
-		}else if(inOptions){
+		}/*else if(inOptions){
 
 
 
@@ -163,7 +163,7 @@ void Menu::keyPress(QKeyEvent *ev){
 
 
 
-		}else if(info){
+		}*/else if(info){
 
 
 
@@ -187,13 +187,13 @@ void Menu::keyPress(QKeyEvent *ev){
 				if(chosen == 0){
 					game->loadLevel("");
 					inGameMenu = 1;
-				}else if(chosen == 1){
+				}/*else if(chosen == 1){
 					inOptions = 1;
 					chosen = 0;
-				}else if(chosen == 2){
+				}*/else if(chosen == 1){
 					info = 1;
 					chosen = 0;
-				}else if(chosen == 3){
+				}else if(chosen == 2){
 					window->close();
 				}
 			}else if(key == Qt::Key_L){
@@ -236,7 +236,7 @@ void Menu::render(QPainter *painter){
 
 	uint32_t i;
 	int yOffset;
-	int yTextDiff = FONT_SIZE+8;
+	int yTextDiff = FONT_SIZE+12;
 	int options;
 
 	if(inGameMenu){
@@ -265,7 +265,7 @@ void Menu::render(QPainter *painter){
 			painter->drawText(16,yLevelOffset+chosen*yTextDiff, game->getW(), FONT_SIZE*2, 0, ">");
 
 
-		}else if(inOptions){
+		}/*else if(inOptions){
 			options = OptionsOptionLen;
 			yOffset = (game->getH()-options*yTextDiff)/2;
 			static int yDiff[3]={-32,0,32};
@@ -285,7 +285,7 @@ void Menu::render(QPainter *painter){
 			painter->fillRect(QRect(game->getW()/2-OptionsOptionMaxLen, yDiff[1]+yOffset+2*yTextDiff+16+2, (OptionsOptionMaxLen*2)*volumeMusic/100,4), QColor(0xFFFFFF));
 
 
-		}else if(info){
+		}*/else if(info){
 			font.setPointSize(FONT_SIZE/2);
 			painter->setFont(font);
 

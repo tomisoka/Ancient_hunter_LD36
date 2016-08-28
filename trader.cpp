@@ -2,7 +2,6 @@
 #include "game.h"
 #include "images.h"
 #include "unlock.h"
-#include "audio.h"
 
 int unlocks[] = {6,2,2};
 
@@ -153,7 +152,6 @@ void Trader::setShopping(bool shopping){
 }
 void Trader::tick(){
 	if(toAudio){
-		playSound("audio/buy.wav");
 		toAudio = 0;
 	}
 }

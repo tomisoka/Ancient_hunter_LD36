@@ -2,7 +2,6 @@
 #include "player.h"
 #include "game.h"
 #include "images.h"
-#include "audio.h"
 
 Bear::Bear(QVector2D pos): Enemy(pos){
 	foodValue = 80;
@@ -55,7 +54,6 @@ void Bear::attack(QVector2D pos){
 	Player *enemy = game->isPlayer(QRectF(attPs.x()-halfSZ/2, attPs.y()-halfSZ/2, halfSZ, halfSZ));
 
 	if(enemy){
-		playSound("audio/hurt.wav");
 		enemy->attacked(attackForce);
 		attackDelay = 400;
 	}

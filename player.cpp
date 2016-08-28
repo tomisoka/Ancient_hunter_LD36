@@ -3,7 +3,6 @@
 #include "game.h"
 #include "campfire.h"
 #include "trap.h"
-#include "audio.h"
 
 Player::Player():moveLeft(0), moveUp(0), moveRight(0), moveDown(0), w(32), h(32), active(0), lastMove(QVector2D(0,1)), attack(0), HP(20), maxHP(20), stamina(1000), maxStamina(1000), sprint(0), loadStamina(0){
 	halfSZ = (w+h)/4;
@@ -117,7 +116,6 @@ void Player::tickAttack(){
 	if(enemy){
 		enemy->reaction(pos);
 		enemy->attacked(attackForce);
-		playSound("audio/hurt.wav");
 	}
 	renderAttack = 20;
 }

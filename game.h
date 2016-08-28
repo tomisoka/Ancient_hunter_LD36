@@ -52,8 +52,6 @@ public slots:
 	void keyPress(QKeyEvent *ev);
 	void keyRelease(QKeyEvent *ev);
 
-	void musicEnd(QMediaPlayer::State state);
-
 	void close(){running = 0;}
 protected:
 	//void enemyKills();

@@ -1,6 +1,5 @@
 #include "game.h"
 #include "images.h"
-#include "audio.h"
 #include "rat.h"
 #include "wolf.h"
 #include "bear.h"
@@ -263,33 +262,13 @@ void Game::keyPress(QKeyEvent *ev){
 			menu->setActive(1);
 			setActive(0);
 		}
-		if(key == Qt::Key_R && enemies.size()){
+		/*if(key == Qt::Key_R && enemies.size()){
 			enemyKilled(enemies[0]);
-		/*food++;
-		delete enemies[0];
-		enemies.erase(enemies.begin());*/
-
-		/*for(int i=0;i<enemies.size();++i){
-			food+=1;
-			delete enemies[i];
-		}
-		enemies.clear();*/
-		}
+		}*/
 	}
-	//if(key == Qt::Key_Q)playSound("audio/jump.wav");
-	//if(key == Qt::Key_R)playMusic("audio/jump.wav");
-	//if(key == Qt::Key_E)playMusic("audio/example.ogg");
 }
 void Game::keyRelease(QKeyEvent *ev){
 
-}
-
-#define MUSICS 2
-QString musicsa[] = {"audio/jump.wav", "audio/example.ogg"};
-void Game::musicEnd(QMediaPlayer::State state){
-	if(state == QMediaPlayer::StoppedState){
-		playMusic(musicsa[getRandInt(MUSICS)]);
-	}
 }
 
 
